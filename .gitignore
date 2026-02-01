@@ -1,0 +1,9 @@
+node_modules/
+dist/
+test-prompts/
+*.log
+.env
+.DS_Store
+.vscode/
+*.swp
+*.swo

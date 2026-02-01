@@ -1,0 +1,28 @@
+{
+  "name": "prompt-compiler",
+  "version": "1.0.0",
+  "description": "Prompt Compiler - 一个用于编译和管理 AI 提示词的工具",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "jest",
+    "build": "mkdir -p dist && cp -r src dist/ && cp package.json dist/",
+    "demo": "node src/demo.js"
+  },
+  "keywords": [
+    "prompt",
+    "compiler",
+    "ai",
+    "llm"
+  ],
+  "author": "dishangyijiao",
+  "license": "MIT",
+  "dependencies": {
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2"
+  }
+}
