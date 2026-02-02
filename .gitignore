@@ -7,3 +7,5 @@ test-prompts/
 .vscode/
 *.swp
 *.swo
+raycast-env.d.ts
+npm-log.txt
