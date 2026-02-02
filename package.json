@@ -1,6 +1,7 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "prompt-compiler",
+  "version": "1.0.0",
   "title": "Prompt Compiler",
   "description": "Translate input in any language into high-quality English prompts and copy to clipboard for any LLM.",
   "icon": "icon.png",

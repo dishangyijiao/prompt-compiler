@@ -7,5 +7,6 @@ test-prompts/
 .vscode/
 *.swp
 *.swo
+coverage/
 raycast-env.d.ts
 npm-log.txt
