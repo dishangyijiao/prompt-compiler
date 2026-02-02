@@ -65,10 +65,28 @@ class PromptCompiler {
   }
 
   /**
-   * 保存所有模板到文件系统
+   * Save all templates to the file system
    */
   save() {
     this.store.save();
+  }
+
+  /**
+   * Export all templates as JSON or YAML
+   * @param {string} [format='json'] - 'json' or 'yaml'
+   * @returns {string} Serialized template data
+   */
+  export(format = 'json') {
+    return this.store.export(format);
+  }
+
+  /**
+   * Import templates from JSON or YAML string
+   * @param {string} data - Serialized template data
+   * @param {string} [format='json'] - 'json' or 'yaml'
+   */
+  import(data, format = 'json') {
+    this.store.import(data, format);
   }
 }
 

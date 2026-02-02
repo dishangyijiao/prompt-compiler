@@ -17,24 +17,19 @@ class Compiler {
    */
   compile(templateName, variables = {}, options = {}) {
     const template = this.store.getTemplate(templateName);
-    
+
     if (!template) {
       throw new Error(`Template '${templateName}' not found`);
     }
 
     let content = template.content;
-    
-    // 简单变量替换
+
     content = this._replaceVariables(content, variables);
-    
-    // 条件渲染
     content = this._renderConditions(content, variables);
-    
-    // 循环渲染
     content = this._renderLoops(content, variables);
-    
-    // 格式化输出
-    content = this._format(content);
+
+    const formatOutput = options.format !== false;
+    content = this._format(content, formatOutput);
 
     return content;
   }
@@ -49,14 +44,20 @@ class Compiler {
   }
 
   /**
-   * 条件渲染
+   * Condition rendering: {{#if var}}...{{else}}...{{/if}}
    */
   _renderConditions(content, variables) {
-    // 支持 {{#if condition}} ... {{/if}} 语法
     return content.replace(
       /{{#if\s+(\w+)\s*}}([\s\S]*?){{\/if}}/g,
       (match, condition, body) => {
-        return variables[condition] ? body : '';
+        const truthy = Boolean(variables[condition]);
+        const elseIndex = body.indexOf('{{else}}');
+        if (elseIndex === -1) {
+          return truthy ? body : '';
+        }
+        const ifPart = body.slice(0, elseIndex).trim();
+        const elsePart = body.slice(elseIndex + 8).trim();
+        return truthy ? ifPart : elsePart;
       }
     );
   }
@@ -83,15 +84,28 @@ class Compiler {
   }
 
   /**
-   * 格式化输出
+   * Format output: trim and collapse excessive whitespace while preserving newlines
+   * @param {string} content - Raw compiled content
+   * @param {boolean} [enabled=true] - If false, only trim; do not collapse spaces
    */
-  _format(content) {
-    return content
-      .replace(/\n\s*\n/g, '\n') // 移除多余空行
-      .trim() // 移除首尾空格
-      .replace(/\s+/g, ' ') // 合并多个空格
-      .replace(/\s*([.,!?])\s*/g, '$1 ') // 格式化标点符号
+  _format(content, enabled = true) {
+    let out = content.trim();
+    if (!enabled) {
+      return out;
+    }
+    out = out
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      .split('\n')
+      .map((line) =>
+        line
+          .replace(/\s+/g, ' ')
+          .trim()
+          .replace(/\s*([.,!?])\s*/g, '$1 ')
+          .trim()
+      )
+      .join('\n')
       .trim();
+    return out;
   }
 }
 

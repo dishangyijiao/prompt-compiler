@@ -1,128 +1,151 @@
 # Prompt Compiler
 
-一个用于编译和管理 AI 提示词的工具，让您可以更高效地创建、组织和重用提示词模板。
+A tool to compile and manage AI prompt templates with variables, conditionals, and loops. Create, organize, and reuse prompt templates efficiently.
 
-## 🌟 功能特点
+## Features
 
-- 📝 **提示词编译**：支持模板变量和条件渲染
-- 🔄 **版本管理**：跟踪提示词的历史版本
-- 📊 **分类管理**：按场景和功能分类组织提示词
-- 🚀 **快速调用**：通过 API 或 CLI 快速访问提示词
-- 📦 **导出功能**：支持多种格式的导出（JSON, YAML, Markdown）
+- **Template compilation** – Variable substitution, conditionals (`{{#if}}` / `{{else}}`), and loops (`{{#each}}`)
+- **Category management** – Organize templates by category (directory-based)
+- **File-based storage** – Load from `.template`, `.txt`, `.md`, or YAML files
+- **Export / import** – JSON and YAML for backup or sharing
+- **API** – Use programmatically in Node.js
 
-## 🚀 快速开始
+## Quick Start
 
-### 安装依赖
+### Install
 
 ```bash
 npm install
 ```
 
-### 运行 Demo
+### Run demo
 
 ```bash
 npm run demo
 ```
 
-### 基本使用
+### Basic usage
 
 ```javascript
-const { PromptCompiler } = require('./src');
+const PromptCompiler = require('prompt-compiler');
 
-// 创建编译器实例
 const compiler = new PromptCompiler();
 
-// 编译提示词
-const result = compiler.compile('simple-prompt', {
-  name: '张三',
-  topic: '人工智能'
+compiler.addTemplate('greeting', 'Hello {{name}}, welcome to {{topic}}!');
+
+const result = compiler.compile('greeting', {
+  name: 'Alice',
+  topic: 'AI',
 });
 
 console.log(result);
+// "Hello Alice, welcome to AI!"
 ```
 
-## 📁 项目结构
+## Project structure
 
 ```
 prompt-compiler/
+├── index.js              # Package entry (re-exports src)
 ├── src/
-│   ├── index.js          # 主入口文件
-│   ├── compiler.js       # 编译器核心逻辑
-│   ├── prompt-store.js   # 提示词存储
-│   └── demo.js          # Demo 功能
-├── prompts/             # 提示词目录
-│   └── default/         # 默认提示词库
-├── tests/               # 测试文件
-└── README.md            # 项目文档
+│   ├── index.js         # PromptCompiler class
+│   ├── compiler.js      # Template compilation engine
+│   ├── prompt-store.js  # Template storage and file I/O
+│   └── demo.js          # Demo script
+├── prompts/             # Default template directory
+│   └── default/
+├── tests/
+├── scripts/
+│   └── build.js         # Cross-platform build
+└── README.md
 ```
 
-## 📖 API 文档
+## API
 
-### PromptCompiler 类
+### `PromptCompiler` class
 
-#### `compile(templateName, variables)`
+#### `constructor(config?)`
 
-编译指定名称的提示词模板，替换变量。
+- `config.promptsDir` – Base directory for templates (default: `'./prompts'`)
+- `config.defaultLocale` – Default locale (default: `'default'`)
 
-**参数：**
-- `templateName` (String): 提示词模板名称
-- `variables` (Object): 变量对象
+#### `compile(templateName, variables?, options?)`
 
-**返回：**
-- `String`: 编译后的提示词
+Compiles a template by name with the given variables.
 
-#### `addTemplate(name, template)`
+- **templateName** (string) – Template name
+- **variables** (object) – Key-value pairs for `{{name}}` substitution
+- **options** (object) – e.g. `{ format: false }` to skip output formatting (preserve newlines)
 
-添加新的提示词模板。
+Returns the compiled string. Throws if the template is not found.
+
+#### `addTemplate(name, content, metadata?)`
+
+Registers a template in memory. Use `save()` to persist to disk.
+
+- **name** (string)
+- **content** (string) – Template body with `{{var}}`, `{{#if}}`, `{{#each}}`, etc.
+- **metadata** (object) – Optional `category`, `type`, etc.
 
 #### `getTemplate(name)`
 
-获取提示词模板内容。
+Returns the template object `{ name, category, content, type, metadata, ... }` or `undefined`.
 
-## 🎯 使用场景
+#### `listTemplates()`
 
-### 1. 快速创建提示词
+Returns an **array of template objects** (not just names).
 
-```javascript
-compiler.addTemplate('simple-prompt', `
-你好 {{name}}，
+#### `removeTemplate(name)`
 
-今天我们来讨论关于 {{topic}} 的话题。
+Removes a template from the store.
 
-请分享你的见解！
-`);
-```
+#### `save()`
 
-### 2. 复杂逻辑支持
+Writes all in-memory templates to the file system under `promptsDir`.
 
-```javascript
-compiler.addTemplate('advanced-prompt', `
-{{#if isExpert}}
-专家模式：深入分析 {{topic}}
-{{else}}
-基础模式：介绍 {{topic}}
-{{/if}}
+#### `export(format?)`
 
-{{#each points}}
-- {{this}}
-{{/each}}
-`);
-```
+Exports all templates as a string. **format**: `'json'` (default) or `'yaml'`.
 
-## 🔧 开发
+#### `import(data, format?)`
 
-### 运行测试
+Imports templates from a string. **format**: `'json'` (default) or `'yaml'`.
+
+---
+
+### Template syntax
+
+- **Variables**: `{{name}}` – replaced by `variables.name`
+- **Conditionals**: `{{#if var}}...{{else}}...{{/if}}` – branch by truthiness of `variables.var`
+- **Loops**: `{{#each key}}...{{this}}...{{/each}}` – `variables.key` must be an array; `{{this}}` is the current item
+
+## Development
+
+### Tests
 
 ```bash
 npm test
 ```
 
-### 代码格式
+### Lint and format
 
 ```bash
+npm run lint
 npm run format
 ```
 
-## 📄 许可证
+### Build
 
-MIT License
+```bash
+npm run build
+```
+
+Produces a `dist/` folder with `index.js`, `src/`, and `package.json` for distribution.
+
+## License
+
+MIT
+
+---
+
+**Note:** `raycast-env.d.ts` is for optional Raycast extension integration and is gitignored in the default setup. Omit it from `.gitignore` if you use this repo as a Raycast extension.

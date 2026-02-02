@@ -1,28 +1,50 @@
 {
   "name": "prompt-compiler",
   "version": "1.0.0",
-  "description": "Prompt Compiler - 一个用于编译和管理 AI 提示词的工具",
+  "description": "Compile and manage AI prompt templates with variables, conditionals, and loops",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "jest",
-    "build": "mkdir -p dist && cp -r src dist/ && cp package.json dist/",
+    "test:ci": "jest --ci --coverage",
+    "format": "prettier --write \"src/**/*.js\" \"tests/**/*.js\" \"*.js\"",
+    "lint": "eslint src tests --ext .js",
+    "build": "node scripts/build.js",
     "demo": "node src/demo.js"
   },
   "keywords": [
     "prompt",
     "compiler",
     "ai",
-    "llm"
+    "llm",
+    "template"
   ],
   "author": "dishangyijiao",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dishangyijiao/prompt-compiler.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dishangyijiao/prompt-compiler/issues"
+  },
+  "homepage": "https://github.com/dishangyijiao/prompt-compiler#readme",
+  "files": [
+    "index.js",
+    "src",
+    "prompts"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "dependencies": {
     "yaml": "^2.3.4"
   },
   "devDependencies": {
+    "eslint": "^8.57.0",
     "jest": "^29.7.0",
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.2",
+    "prettier": "^3.2.5"
   }
 }
