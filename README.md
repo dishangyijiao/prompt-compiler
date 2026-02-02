@@ -1,151 +1,98 @@
 # Prompt Compiler
 
-A tool to compile and manage AI prompt templates with variables, conditionals, and loops. Create, organize, and reuse prompt templates efficiently.
+A Raycast extension that translates input in any language into high-quality English and an LLM-ready optimized prompt, then copies the result to your clipboard for use with any AI tool.
 
 ## Features
 
-- **Template compilation** – Variable substitution, conditionals (`{{#if}}` / `{{else}}`), and loops (`{{#each}}`)
-- **Category management** – Organize templates by category (directory-based)
-- **File-based storage** – Load from `.template`, `.txt`, `.md`, or YAML files
-- **Export / import** – JSON and YAML for backup or sharing
-- **API** – Use programmatically in Node.js
+- **Translate & optimize**: One action turns your text (any language) into natural English and a concise, instruction-style prompt.
+- **Single call**: Uses one API request per run for low latency.
+- **Markdown output**: Results are formatted with `## English Translation` and `## Optimized Prompt` for easy pasting into Claude, ChatGPT, Cursor, Copilot, or any LLM.
+- **Clipboard**: Full output is copied to the system clipboard automatically.
+- **Multiple providers**: Choose DeepSeek, Kimi (Moonshot), OpenAI, Anthropic, or Gemini and paste that provider’s API key.
 
-## Quick Start
+## Requirements
 
-### Install
+- [Raycast](https://www.raycast.com/) (macOS)
+- An API key from one of the supported providers
+
+## Supported Providers & Default Models
+
+| Provider | Get API Key | Default Model |
+|----------|-------------|---------------|
+| **DeepSeek** | [platform.deepseek.com](https://platform.deepseek.com) | `deepseek-chat` |
+| **Kimi (Moonshot)** | [platform.moonshot.cn](https://platform.moonshot.cn) | `moonshot-v1-32k` |
+| **OpenAI** | [platform.openai.com](https://platform.openai.com) | `gpt-4o` |
+| **Anthropic** | [console.anthropic.com](https://console.anthropic.com) | `claude-sonnet-4-5` |
+| **Gemini** | [aistudio.google.com](https://aistudio.google.com) | `gemini-2.5-flash` |
+
+You can override the default model in extension preferences (e.g. `gpt-4o-mini`, `claude-3-5-sonnet`).
+
+## Installation
+
+### From Raycast Store (when published)
+
+1. Open Raycast and search for **Prompt Compiler**.
+2. Install the extension.
+3. Open **Extension Preferences** (⌘,) and set **API / Model** and **API Key**.
+
+### From source
+
+1. Clone the repo and go to the extension folder:
+   ```bash
+   cd prompt-compiler
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the extension in development mode:
+   ```bash
+   npm run dev
+   ```
+4. In Raycast, open the **Compile Prompt** command and configure **API / Model** and **API Key** in preferences (⌘,).
+
+## Configuration
+
+- **API / Model**: Select your provider (DeepSeek, Kimi, OpenAI, Anthropic, or Gemini).
+- **API Key**: Paste the API key for the selected provider. Keys are stored locally and not sent anywhere except the chosen provider’s API.
+- **Model (optional)**: Leave empty to use the default model for the provider, or enter a model ID (e.g. `gpt-4o`, `claude-3-opus`) to override.
+
+## Development
 
 ```bash
+# Install dependencies
 npm install
+
+# Run in development mode (hot reload)
+npm run dev
+
+# Lint
+npm run lint
+
+# Fix lint
+npm run fix-lint
+
+# Build for production
+npm run build
 ```
 
-### Run demo
-
-```bash
-npm run demo
-```
-
-### Basic usage
-
-```javascript
-const PromptCompiler = require('prompt-compiler');
-
-const compiler = new PromptCompiler();
-
-compiler.addTemplate('greeting', 'Hello {{name}}, welcome to {{topic}}!');
-
-const result = compiler.compile('greeting', {
-  name: 'Alice',
-  topic: 'AI',
-});
-
-console.log(result);
-// "Hello Alice, welcome to AI!"
-```
+After `npm run dev`, use the **Compile Prompt** command in Raycast to test. Changes to the code will hot reload.
 
 ## Project structure
 
 ```
 prompt-compiler/
-├── index.js              # Package entry (re-exports src)
+├── assets/
+│   └── icon.png          # Extension icon (512×512 PNG recommended)
 ├── src/
-│   ├── index.js         # PromptCompiler class
-│   ├── compiler.js      # Template compilation engine
-│   ├── prompt-store.js  # Template storage and file I/O
-│   └── demo.js          # Demo script
-├── prompts/             # Default template directory
-│   └── default/
-├── tests/
-├── scripts/
-│   └── build.js         # Cross-platform build
+│   ├── index.tsx         # Main command: form, API call, result view, clipboard
+│   └── lib/
+│       └── llm.ts        # LLM client (OpenAI-compatible + Anthropic Messages API)
+├── package.json         # Raycast manifest and preferences
+├── tsconfig.json
 └── README.md
 ```
-
-## API
-
-### `PromptCompiler` class
-
-#### `constructor(config?)`
-
-- `config.promptsDir` – Base directory for templates (default: `'./prompts'`)
-- `config.defaultLocale` – Default locale (default: `'default'`)
-
-#### `compile(templateName, variables?, options?)`
-
-Compiles a template by name with the given variables.
-
-- **templateName** (string) – Template name
-- **variables** (object) – Key-value pairs for `{{name}}` substitution
-- **options** (object) – e.g. `{ format: false }` to skip output formatting (preserve newlines)
-
-Returns the compiled string. Throws if the template is not found.
-
-#### `addTemplate(name, content, metadata?)`
-
-Registers a template in memory. Use `save()` to persist to disk.
-
-- **name** (string)
-- **content** (string) – Template body with `{{var}}`, `{{#if}}`, `{{#each}}`, etc.
-- **metadata** (object) – Optional `category`, `type`, etc.
-
-#### `getTemplate(name)`
-
-Returns the template object `{ name, category, content, type, metadata, ... }` or `undefined`.
-
-#### `listTemplates()`
-
-Returns an **array of template objects** (not just names).
-
-#### `removeTemplate(name)`
-
-Removes a template from the store.
-
-#### `save()`
-
-Writes all in-memory templates to the file system under `promptsDir`.
-
-#### `export(format?)`
-
-Exports all templates as a string. **format**: `'json'` (default) or `'yaml'`.
-
-#### `import(data, format?)`
-
-Imports templates from a string. **format**: `'json'` (default) or `'yaml'`.
-
----
-
-### Template syntax
-
-- **Variables**: `{{name}}` – replaced by `variables.name`
-- **Conditionals**: `{{#if var}}...{{else}}...{{/if}}` – branch by truthiness of `variables.var`
-- **Loops**: `{{#each key}}...{{this}}...{{/each}}` – `variables.key` must be an array; `{{this}}` is the current item
-
-## Development
-
-### Tests
-
-```bash
-npm test
-```
-
-### Lint and format
-
-```bash
-npm run lint
-npm run format
-```
-
-### Build
-
-```bash
-npm run build
-```
-
-Produces a `dist/` folder with `index.js`, `src/`, and `package.json` for distribution.
 
 ## License
 
 MIT
-
----
-
-**Note:** `raycast-env.d.ts` is for optional Raycast extension integration and is gitignored in the default setup. Omit it from `.gitignore` if you use this repo as a Raycast extension.

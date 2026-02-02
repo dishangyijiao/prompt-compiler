@@ -9,3 +9,4 @@ test-prompts/
 *.swo
 coverage/
 raycast-env.d.ts
+npm-log.txt
