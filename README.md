@@ -1,13 +1,15 @@
 # Prompt Compiler
 
-A Raycast extension that translates input in any language into high-quality English and an LLM-ready optimized prompt, then copies the result to your clipboard for use with any AI tool.
+A Raycast extension for BYOK multi-provider prompt optimization. It translates input in any language into polished English and an LLM-ready prompt, then copies the output to your clipboard.
 
 ## Features
 
 - **Translate & optimize**: One action turns your text (any language) into natural English and a concise, instruction-style prompt.
+- **Selected text first**: Automatically pre-fills from the current text selection when available.
+- **Output modes**: Choose `Translation + Optimized Prompt`, `Translation Only`, or `Optimized Prompt Only`.
 - **Single call**: Uses one API request per run for low latency.
-- **Markdown output**: Results are formatted with `## English Translation` and `## Optimized Prompt` for easy pasting into Claude, ChatGPT, Cursor, Copilot, or any LLM.
-- **Clipboard**: Full output is copied to the system clipboard automatically.
+- **Robust errors**: Clear guidance for invalid keys, rate limits/quota, provider downtime, and timeouts.
+- **Clipboard**: The selected output mode is copied to the system clipboard automatically.
 - **Multiple providers**: Choose DeepSeek, Kimi (Moonshot), OpenAI, Anthropic, or Gemini and paste that provider’s API key.
 
 ## Requirements
@@ -57,6 +59,12 @@ You can override the default model in extension preferences (e.g. `gpt-4o-mini`,
 - **API Key**: Paste the API key for the selected provider. Keys are stored locally and not sent anywhere except the chosen provider’s API.
 - **Model (optional)**: Leave empty to use the default model for the provider, or enter a model ID (e.g. `gpt-4o`, `claude-3-opus`) to override.
 
+## Data handling
+
+- Input text is sent only to the provider you selected in extension preferences.
+- API keys are stored in Raycast extension preferences on your machine.
+- This extension does not run its own backend and does not forward your data to any service other than the selected provider API.
+
 ## Development
 
 ```bash
@@ -74,6 +82,9 @@ npm run fix-lint
 
 # Build for production
 npm run build
+
+# Unit tests
+npm test
 ```
 
 After `npm run dev`, use the **Compile Prompt** command in Raycast to test. Changes to the code will hot reload.
@@ -83,13 +94,18 @@ After `npm run dev`, use the **Compile Prompt** command in Raycast to test. Chan
 ```
 prompt-compiler/
 ├── assets/
-│   └── icon.png          # Extension icon (512×512 PNG recommended)
+│   └── icon.png          # Extension icon (512×512 PNG)
+├── tests/
+│   └── llm.test.ts       # LLM parser/error mapping unit tests
+├── .github/workflows/
+│   └── ci.yml            # lint + build + test gates
 ├── src/
 │   ├── index.tsx         # Main command: form, API call, result view, clipboard
 │   └── lib/
 │       └── llm.ts        # LLM client (OpenAI-compatible + Anthropic Messages API)
 ├── package.json         # Raycast manifest and preferences
 ├── tsconfig.json
+├── jest.config.cjs
 └── README.md
 ```
 

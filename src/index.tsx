@@ -4,13 +4,14 @@ import {
   Clipboard,
   Detail,
   Form,
+  getSelectedText,
   getPreferenceValues,
   openExtensionPreferences,
   showToast,
   Toast,
 } from "@raycast/api";
-import { useState } from "react";
-import { compilePrompt } from "./lib/llm";
+import { useEffect, useState } from "react";
+import { compilePrompt, formatOutputForMode, OutputMode } from "./lib/llm";
 
 type Preferences = {
   provider: string;
@@ -18,10 +19,12 @@ type Preferences = {
   model: string;
 };
 
-const PROVIDER_DEFAULTS: Record<
-  string,
-  { baseUrl: string; model: string; chatPath?: string }
-> = {
+type FormValues = {
+  input: string;
+  outputMode: OutputMode;
+};
+
+const PROVIDER_DEFAULTS: Record<string, { baseUrl: string; model: string; chatPath?: string }> = {
   deepseek: { baseUrl: "https://api.deepseek.com", model: "deepseek-chat" },
   kimi: { baseUrl: "https://api.moonshot.cn", model: "moonshot-v1-32k" },
   openai: { baseUrl: "https://api.openai.com", model: "gpt-4o" },
@@ -62,9 +65,45 @@ export default function Command() {
   const [result, setResult] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [input, setInput] = useState("");
+  const [outputMode, setOutputMode] = useState<OutputMode>("both");
 
-  async function handleSubmit(values: { input: string }) {
+  useEffect(() => {
+    void prefillFromSelection();
+  }, []);
+
+  async function prefillFromSelection() {
+    try {
+      const selectedText = (await getSelectedText()).trim();
+      if (selectedText) {
+        setInput(selectedText);
+      }
+    } catch {
+      // No selected text is available; this is expected in many flows.
+    }
+  }
+
+  async function useSelectedText() {
+    try {
+      const selectedText = (await getSelectedText()).trim();
+      if (!selectedText) {
+        showToast({ style: Toast.Style.Failure, title: "No selected text found" });
+        return;
+      }
+      setInput(selectedText);
+      showToast({ style: Toast.Style.Success, title: "Loaded selected text" });
+    } catch {
+      showToast({
+        style: Toast.Style.Failure,
+        title: "Unable to read selected text",
+        message: "Highlight text in another app, then try again.",
+      });
+    }
+  }
+
+  async function handleSubmit(values: FormValues) {
     const text = (values.input || "").trim();
+    const mode = values.outputMode || outputMode;
     setErrorMessage(null);
     if (!text) {
       showToast({ style: Toast.Style.Failure, title: "Please enter text" });
@@ -84,10 +123,11 @@ export default function Command() {
 
     setLoading(true);
     try {
-      const markdown = await compilePrompt(text, config);
-      setResult(markdown);
+      const compiled = await compilePrompt(text, config);
+      const output = formatOutputForMode(compiled, mode);
+      setResult(output);
       setErrorMessage(null);
-      await Clipboard.copy(markdown);
+      await Clipboard.copy(output);
       showToast({ style: Toast.Style.Success, title: "Copied to clipboard" });
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
@@ -100,7 +140,9 @@ export default function Command() {
         const help = API_KEY_HELP[provider]
           ? `Get or check your key: ${API_KEY_HELP[provider]}`
           : "Check key and provider in Extension Preferences (⌘,).";
-        setErrorMessage(`## Invalid API key\n\n${help}\n\n**Quick checks:**\n- Re-paste the API key (no extra spaces before/after)\n- Confirm the key is active at the provider’s console\n- Ensure **API / Model** matches the key (e.g. DeepSeek key → DeepSeek selected)`);
+        setErrorMessage(
+          `## Invalid API key\n\n${help}\n\n**Quick checks:**\n- Re-paste the API key (no extra spaces before/after)\n- Confirm the key is active at the provider’s console\n- Ensure **API / Model** matches the key (e.g. DeepSeek key → DeepSeek selected)`
+        );
       } else {
         setErrorMessage(`## Error\n\n${message}`);
       }
@@ -123,6 +165,7 @@ export default function Command() {
           <ActionPanel>
             <Action title="Open Extension Preferences" onAction={openExtensionPreferences} />
             <Action title="Try Again" onAction={() => setErrorMessage(null)} />
+            <Action title="Use Selected Text" onAction={useSelectedText} />
           </ActionPanel>
         }
       />
@@ -137,6 +180,7 @@ export default function Command() {
           <ActionPanel>
             <Action.CopyToClipboard content={result} title="Copy to Clipboard" />
             <Action title="Compile Another" onAction={() => setResult(null)} />
+            <Action title="Use Selected Text" onAction={useSelectedText} />
           </ActionPanel>
         }
       />
@@ -149,6 +193,7 @@ export default function Command() {
       actions={
         <ActionPanel>
           <Action.SubmitForm title="Compile" onSubmit={handleSubmit} />
+          <Action title="Use Selected Text" onAction={useSelectedText} />
           <Action title="Open Extension Preferences" onAction={openExtensionPreferences} />
         </ActionPanel>
       }
@@ -156,9 +201,21 @@ export default function Command() {
       <Form.TextArea
         id="input"
         title="Input text"
+        value={input}
+        onChange={setInput}
         placeholder="Paste or type text in any language…"
         enableMarkdown={false}
       />
+      <Form.Dropdown
+        id="outputMode"
+        title="Output Mode"
+        value={outputMode}
+        onChange={(value) => setOutputMode(value as OutputMode)}
+      >
+        <Form.Dropdown.Item value="both" title="Translation + Optimized Prompt" />
+        <Form.Dropdown.Item value="translation" title="Translation Only" />
+        <Form.Dropdown.Item value="prompt" title="Optimized Prompt Only" />
+      </Form.Dropdown>
     </Form>
   );
 }

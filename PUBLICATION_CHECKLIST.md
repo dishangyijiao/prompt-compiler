@@ -6,10 +6,8 @@ Use this list before submitting to the Raycast Store. Items marked **[DONE]** ar
 
 ## 1. Extension icon (required)
 
-- **[ ] Replace placeholder icon**  
-  Current `assets/icon.png` is 1×1 px. Raycast requires **512×512 px PNG** that looks good in light and dark themes.  
-  - Use [Raycast icon generator](https://icon.ray.so/) or the [Figma icon template](https://www.figma.com/community/file/1030764827259035122/Extensions-Icon-Template).  
-  - Extensions using the default Raycast icon are rejected.
+- **[DONE] Replace placeholder icon**  
+  `assets/icon.png` is now a **512×512 px PNG**.
 
 ---
 
@@ -45,20 +43,27 @@ Use this list before submitting to the Raycast Store. Items marked **[DONE]** ar
 
 ## 5. Build and lint
 
-- **[ ] Run distribution build**: `npm run build` — must complete without errors (run locally in your extension directory).  
-- **[ ] Run lint**: `npm run lint` (and `npm run fix-lint` if needed).  
-- **[ ]** Open the built extension in Raycast and test: form → compile → result → clipboard and “Compile Another”; test invalid API key and “Open Extension Preferences.”
+- **[DONE] Run distribution build**: `npm run build` passes.  
+- **[DONE] Run lint**: `npm run lint` passes.  
+- **[ ]** Open the built extension in Raycast and test: selected-text prefill, output mode switching, compile flow, invalid API key flow, and “Open Extension Preferences.”
 
 ---
 
-## 6. README and media
+## 6. Tests and CI
+
+- **[DONE]** Add unit tests for `src/lib/llm.ts` (mocked fetch, parsing, mode formatting, and error mapping).  
+- **[DONE]** Add CI workflow for `lint + build + test`.
+
+---
+
+## 7. README and media
 
 - **[DONE]** README describes setup, providers, API key, and optional model.  
 - **[DONE]** `media/` folder present; use it for any images linked from README. Store screenshots are added via Window Capture + “Save to Metadata,” not necessarily as files in `media/`.
 
 ---
 
-## 7. Publish
+## 8. Publish
 
 - **[ ]** Run `npm run publish` when ready (opens a PR in `raycast/extensions`).  
 - **[ ]** If you have upstream changes, run `npx @raycast/api@latest pull-contributions` first.  
@@ -70,9 +75,10 @@ Use this list before submitting to the Raycast Store. Items marked **[DONE]** ar
 
 | Item              | Status / Action                                      |
 |-------------------|------------------------------------------------------|
-| Icon 512×512 PNG  | Replace current 1×1 placeholder                      |
+| Icon 512×512 PNG  | Done                                                 |
 | Screenshots       | 3–6 × 2000×1250 PNG via Window Capture + Metadata   |
 | Author            | Must match Raycast username                         |
 | CHANGELOG.md      | Present; use `{PR_MERGE_DATE}` for release date    |
-| npm run build     | Run and fix any errors before submitting            |
+| npm run build     | Done                                                 |
+| npm run lint      | Done                                                 |
 | Third-party ToS   | Confirm compliance for all LLM providers            |
